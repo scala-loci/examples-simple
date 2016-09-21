@@ -5,10 +5,7 @@ import retier.rescalaTransmitter._
 import retier.serializable.upickle._
 import retier.tcp._
 
-import rescala.Var
-import rescala.Signal
-import rescala.events.ImperativeEvent
-import makro.SignalMacro.{SignalM => Signal}
+import rescala._
 
 import scala.io
 import java.util.Date
@@ -41,20 +38,20 @@ object TimeService {
 
     val display = Signal { format() format new Date(time.asLocal()) }
 
-    val show = new ImperativeEvent[Unit]
+    val show = Evt[Unit]
 
-    (display snapshot show).changed += println
+    (show snapshot display).changed observe println
 
     println("type `show` or specify a time format, e.g., `h:m:s`")
 
     while (multitier.running)
       io.StdIn.readLine match {
         case "show" =>
-          show(())
+          show.fire
         case "exit" =>
           multitier.terminate
         case line =>
-          try format() = new SimpleDateFormat(line)
+          try format set new SimpleDateFormat(line)
           catch { case e: IllegalArgumentException => println(e.getMessage) }
       }
   }

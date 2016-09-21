@@ -5,9 +5,7 @@ import retier.rescalaTransmitter._
 import retier.serializable.upickle._
 import retier.tcp._
 
-import rescala.Var
-import rescala.Signal
-import makro.SignalMacro.{SignalM => Signal}
+import rescala._
 
 import java.util.Date
 import java.util.Calendar
@@ -29,7 +27,7 @@ object TimeService {
 
   placed[Server].main {
     while (true) {
-      time() = Calendar.getInstance.getTimeInMillis
+      time set Calendar.getInstance.getTimeInMillis
       Thread sleep 1000
     }
   }
@@ -39,7 +37,7 @@ object TimeService {
 
     val display = Signal { format format new Date(time.asLocal()) }
 
-    display.changed += println
+    display.changed observe println
   }
 }
 

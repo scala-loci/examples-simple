@@ -4,7 +4,7 @@ organization := "de.tuda.stg"
 
 version := "0.0.1-SNAPSHOT"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 libraryDependencies ++= Seq(
   "de.tuda.stg" %% "retier-core" % "0+",

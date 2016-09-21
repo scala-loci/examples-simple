@@ -6,7 +6,7 @@ import retier.rescalaTransmitter._
 import retier.serializable.upickle._
 import retier.tcp._
 
-import rescala.events.ImperativeEvent
+import rescala._
 
 import java.util.Date
 import java.util.Calendar
@@ -18,7 +18,7 @@ object Chat {
   trait Server extends ServerPeer[Client]
   trait Client extends ClientPeer[Server]
 
-  val message = placed[Client] { new ImperativeEvent[String] }
+  val message = placed[Client] { Evt[String] }
 
   val publicMessage = placed[Server].issued { client: Remote[Client] =>
     message.asLocalSeq collect {
@@ -27,10 +27,10 @@ object Chat {
   }
 
   placed[Client].main {
-    publicMessage.asLocal += println _
+    publicMessage.asLocal observe println
 
     for (line <- io.Source.stdin.getLines)
-      message(line)
+      message fire line
   }
 }
 
