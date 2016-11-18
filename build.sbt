@@ -17,6 +17,6 @@ libraryDependencies ++= Seq(
 
 scalacOptions ++= Seq("-feature", "-deprecation", "-unchecked", "-Xlint")
 
-addCompilerPlugin("dslparadise" %% "dslparadise" % "0.0.1-SNAPSHOT")
+addCompilerPlugin("dslparadise" % "dslparadise" % "0.0.1-SNAPSHOT" cross CrossVersion.full)
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
