@@ -1,9 +1,9 @@
 package timeservicesimple
 
-import retier._
-import retier.rescalaTransmitter._
-import retier.serializable.upickle._
-import retier.tcp._
+import loci._
+import loci.rescalaTransmitter._
+import loci.serializable.upickle._
+import loci.tcp._
 
 import rescala._
 
@@ -11,17 +11,11 @@ import java.util.Date
 import java.util.Calendar
 import java.text.SimpleDateFormat
 
+
 @multitier
 object TimeService {
-  class Server extends Peer {
-    type Connection <: Multiple[Client]
-    def connect = listen[Client] { TCP(43053) }
-  }
-
-  class Client extends Peer {
-    type Connection <: Single[Server]
-    def connect = request[Server] { TCP("localhost", 43053) }
-  }
+  trait Server extends Peer { type Tie <: Multiple[Client] }
+  trait Client extends Peer { type Tie <: Single[Server] }
 
   val time = placed[Server] { Var(0l) }
 
@@ -41,10 +35,15 @@ object TimeService {
   }
 }
 
+
 object Server extends App {
-  multitier.run[TimeService.Server]
+  multitier setup new TimeService.Server {
+    def connect = listen[TimeService.Client] { TCP(43053) }
+  }
 }
 
 object Client extends App {
-  multitier.run[TimeService.Client]
+  multitier setup new TimeService.Client {
+    def connect = request[TimeService.Server] { TCP("localhost", 43053) }
+  }
 }

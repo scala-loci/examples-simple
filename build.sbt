@@ -1,22 +1,22 @@
-name := "retier-examples"
+name := "scala-loci-examples"
 
 organization := "de.tuda.stg"
 
-version := "0.0.1-SNAPSHOT"
+version := "0.0.0"
 
 scalaVersion := "2.11.8"
 
-libraryDependencies ++= Seq(
-  "de.tuda.stg" %% "retier-core" % "0+",
-  "de.tuda.stg" %% "retier-architectures-basic" % "0+",
-  "de.tuda.stg" %% "retier-serializable-upickle" % "0+",
-  "de.tuda.stg" %% "retier-network-tcp" % "0+",
-  "de.tuda.stg" %% "retier-transmitter-basic" % "0+",
-  "de.tuda.stg" %% "retier-transmitter-rescala" % "0+"
-)
-
 scalacOptions ++= Seq("-feature", "-deprecation", "-unchecked", "-Xlint")
 
-addCompilerPlugin("dslparadise" % "dslparadise" % "0.0.1-SNAPSHOT" cross CrossVersion.full)
+resolvers += Resolver.bintrayRepo("stg-tud", "maven")
 
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+libraryDependencies ++= Seq(
+  "de.tuda.stg" %% "scala-loci-core" % "0.1.0",
+  "de.tuda.stg" %% "scala-loci-serializable-upickle" % "0.1.0",
+  "de.tuda.stg" %% "scala-loci-network-tcp" % "0.1.0",
+  "de.tuda.stg" %% "scala-loci-transmitter-basic" % "0.1.0",
+  "de.tuda.stg" %% "scala-loci-transmitter-rescala" % "0.1.0")
+
+addCompilerPlugin("dslparadise" % "dslparadise" % "0.0.1-SNAPSHOT" cross CrossVersion.patch)
+
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)
