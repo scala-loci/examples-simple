@@ -1,11 +1,11 @@
 package batch.tokenring
 
-import loci._
-import loci.rescalaTransmitter._
-import loci.serializable.upickle._
-import loci.tcp._
-
 import rescala._
+
+import loci._
+import loci.transmitter.rescala._
+import loci.communicator.tcp._
+import loci.serializer.upickle._
 
 import java.util.UUID
 
@@ -45,16 +45,16 @@ object TokenRingMain extends App {
   val last = (ports.last, ports.head)
 
   val requestors =
-    (TCP(first._1).firstRequest -> TCP(first._2).firstRequest) +:
+    (TCP(first._1).firstConnection -> TCP(first._2).firstConnection) +:
     (middle map { middle =>
-      TCP("localhost", middle._1) -> TCP(middle._2).firstRequest }) :+
+      TCP("localhost", middle._1) -> TCP(middle._2).firstConnection }) :+
     (TCP("localhost", last._1) -> TCP("localhost", last._2))
 
   requestors foreach { requestor =>
     multitier setup new TokenRing.Node {
       def connect =
-        request[TokenRing.Prev] { requestor._1 } and
-        request[TokenRing.Next] { requestor._2 }
+        connect[TokenRing.Prev] { requestor._1 } and
+        connect[TokenRing.Next] { requestor._2 }
     }
   }
 }

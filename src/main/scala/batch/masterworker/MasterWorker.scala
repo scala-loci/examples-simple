@@ -1,19 +1,27 @@
 package batch.masterworker
 
-import loci._
-import loci.rescalaTransmitter._
-import loci.serializable.upickle._
-import loci.tcp._
-
 import rescala._
 
+import upickle.default._
+
+import loci._
+import loci.transmitter.rescala._
+import loci.communicator.tcp._
+import loci.serializer.upickle._
+
+import scala.language.higherKinds
+
+
+case class Task(v: Int) { def exec: Int = 2 * v }
+
+object Task {
+  implicit val taskSerializer: ReadWriter[Task] = macroRW[Task]
+}
 
 @multitier
 object MasterWorker {
   trait Master extends Peer { type Tie <: Multiple[Worker] }
   trait Worker extends Peer { type Tie <: Single[Master] }
-
-  case class Task(v: Int) { def exec: Int = 2 * v }
 
   val taskStream: Evt[Task] localOn Master = Evt[Task]
 
@@ -21,7 +29,7 @@ object MasterWorker {
     ((taskStream || taskResult.asLocalFromAllSeq || remote[Worker].joined)
       .fold((Map.empty[Remote[Worker], Task], List.empty[Task]))
        { case ((taskAssocs, taskQueue), taskChanged) =>
-         assignTasks(taskAssocs, taskQueue, taskChanged, remote[Worker].connected) }
+         assignTasks(taskAssocs, taskQueue, taskChanged, remote[Worker].connected()) }
     map { case (taskAssocs, _) => taskAssocs }) }
 
   val deployedTask = placed[Master].sbj { worker: Remote[Worker] =>
@@ -35,9 +43,9 @@ object MasterWorker {
       taskAssocs: Map[Remote[Worker], Task],
       taskQueue: List[Task],
       taskChanged: AnyRef,
-      connected: Signal[Seq[Remote[Worker]]]) = placed[Master].local {
+      connected: Seq[Remote[Worker]]) = placed[Master].local {
     def assignFreeWorker(assocs: Map[Remote[Worker], Task], task: Task) =
-      (connected.now filterNot { assocs contains _ }).headOption map { worker =>
+      (connected filterNot { assocs contains _ }).headOption map { worker =>
         assocs + (worker -> task)
       }
 
@@ -82,7 +90,7 @@ object MasterWorkerMain extends App {
 
   1 to 2 foreach { _ =>
     multitier setup new MasterWorker.Worker {
-      def connect = request[MasterWorker.Master] { TCP("localhost", 1095) }
+      def connect = connect[MasterWorker.Master] { TCP("localhost", 1095) }
     }
   }
 }

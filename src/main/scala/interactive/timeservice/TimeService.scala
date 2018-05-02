@@ -1,9 +1,9 @@
 package interactive.timeservice
 
 import loci._
-import loci.rescalaTransmitter._
-import loci.serializable.upickle._
-import loci.tcp._
+import loci.transmitter.rescala._
+import loci.serializer.upickle._
+import loci.communicator.tcp._
 
 import rescala._
 
@@ -34,7 +34,7 @@ object TimeService {
 
     val show = Evt[Unit]
 
-    (show snapshot display).changed observe println
+    show map { _ => display() } observe println
 
     println("type `show` or specify a time format, e.g., `h:m:s`")
 
@@ -60,6 +60,6 @@ object Server extends App {
 
 object Client extends App {
   multitier setup new TimeService.Client {
-    def connect = request[TimeService.Server] { TCP("localhost", 43053) }
+    def connect = connect[TimeService.Server] { TCP("localhost", 43053) }
   }
 }

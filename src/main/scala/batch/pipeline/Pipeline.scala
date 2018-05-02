@@ -1,12 +1,30 @@
 package batch.pipeline
 
-import loci._
-import loci.rescalaTransmitter._
-import loci.serializable.upickle._
-import loci.tcp._
-
 import rescala._
 
+import upickle.default._
+
+import loci._
+import loci.transmitter.rescala._
+import loci.communicator.tcp._
+import loci.serializer.upickle._
+
+import scala.language.higherKinds
+
+
+case class Author(name: String)
+
+object Author {
+  implicit val taskSerializer: ReadWriter[Author] = macroRW[Author]
+}
+
+case class Tweet(tags: Set[String], author: Author) {
+  def hasHashtag(tag: String) = tags contains tag
+}
+
+object Tweet {
+  implicit val taskSerializer: ReadWriter[Tweet] = macroRW[Tweet]
+}
 
 @multitier
 object Pipeline {
@@ -14,12 +32,6 @@ object Pipeline {
   trait Filter extends Peer { type Tie <: Single[Mapper] with Single[Input] }
   trait Mapper extends Peer { type Tie <: Single[Folder] with Single[Filter] } 
   trait Folder extends Peer { type Tie <: Single[Mapper] }
-
-  case class Author(name: String)
-
-  case class Tweet(tags: Set[String], author: Author) {
-    def hasHashtag(tag: String) = tags contains tag
-  }
 
   val tweetStream: Evt[Tweet] on Input = Evt[Tweet]
 
@@ -59,22 +71,22 @@ object Pipeline {
 
 object PipelineMain extends App {
   multitier setup new Pipeline.Folder {
-    def connect = request[Pipeline.Mapper] { TCP(1095).firstRequest }
+    def connect = connect[Pipeline.Mapper] { TCP(1095).firstConnection }
   }
 
   multitier setup new Pipeline.Mapper {
     def connect =
-      request[Pipeline.Folder] { TCP("localhost", 1095) } and
-      request[Pipeline.Filter] { TCP(1096).firstRequest }
+      connect[Pipeline.Folder] { TCP("localhost", 1095) } and
+      connect[Pipeline.Filter] { TCP(1096).firstConnection }
   }
 
   multitier setup new Pipeline.Filter {
     def connect =
-      request[Pipeline.Mapper] { TCP("localhost", 1096) } and
-      request[Pipeline.Input] { TCP(1097).firstRequest }
+      connect[Pipeline.Mapper] { TCP("localhost", 1096) } and
+      connect[Pipeline.Input] { TCP(1097).firstConnection }
   }
 
   multitier setup new Pipeline.Input {
-    def connect = request[Pipeline.Filter] { TCP("localhost", 1097) }
+    def connect = connect[Pipeline.Filter] { TCP("localhost", 1097) }
   }
 }

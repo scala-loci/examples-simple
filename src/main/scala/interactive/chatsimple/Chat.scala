@@ -1,9 +1,9 @@
 package interactive.chatsimple
 
 import loci._
-import loci.rescalaTransmitter._
-import loci.serializable.upickle._
-import loci.tcp._
+import loci.transmitter.rescala._
+import loci.serializer.upickle._
+import loci.communicator.tcp._
 
 import rescala._
 
@@ -24,7 +24,7 @@ object Chat {
   placed[Client].main {
     publicMessage.asLocal observe println
 
-    for (line <- io.Source.stdin.getLines)
+    for (line <- scala.io.Source.stdin.getLines)
       message fire line
   }
 }
@@ -38,6 +38,6 @@ object Server extends App {
 
 object Client extends App {
   multitier setup new Chat.Client {
-    def connect = request[Chat.Server] { TCP("localhost", 43053) }
+    def connect = connect[Chat.Server] { TCP("localhost", 43053) }
   }
 }

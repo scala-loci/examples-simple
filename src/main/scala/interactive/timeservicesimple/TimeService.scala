@@ -1,9 +1,9 @@
 package interactive.timeservicesimple
 
 import loci._
-import loci.rescalaTransmitter._
-import loci.serializable.upickle._
-import loci.tcp._
+import loci.transmitter.rescala._
+import loci.serializer.upickle._
+import loci.communicator.tcp._
 
 import rescala._
 
@@ -44,6 +44,6 @@ object Server extends App {
 
 object Client extends App {
   multitier setup new TimeService.Client {
-    def connect = request[TimeService.Server] { TCP("localhost", 43053) }
+    def connect = connect[TimeService.Server] { TCP("localhost", 43053) }
   }
 }
