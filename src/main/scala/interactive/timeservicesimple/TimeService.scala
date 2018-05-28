@@ -1,4 +1,4 @@
-package timeservicesimple
+package interactive.timeservicesimple
 
 import loci._
 import loci.rescalaTransmitter._

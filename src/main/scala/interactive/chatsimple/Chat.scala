@@ -1,4 +1,4 @@
-package chatsimple
+package interactive.chatsimple
 
 import loci._
 import loci.rescalaTransmitter._
