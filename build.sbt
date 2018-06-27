@@ -17,6 +17,6 @@ libraryDependencies ++= Seq(
   "de.tuda.stg" %% "scala-loci-transmitter-basic" % "0.1.0",
   "de.tuda.stg" %% "scala-loci-transmitter-rescala" % "0.1.0")
 
-addCompilerPlugin("dslparadise" % "dslparadise" % "0.0.1-SNAPSHOT" cross CrossVersion.patch)
+addCompilerPlugin("de.tuda.stg" % "dslparadise" % "0.2.0" cross CrossVersion.patch)
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)

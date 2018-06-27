@@ -2,9 +2,6 @@
 
 This repository contains simple showcases of ScalaLoci using small examples.
 
-
-## Examples
-
 * [Simple Chat](src/main/scala/interactive/chatsimple) implements a public chat with a
   single chat room, to which every participant can send messages.
 
@@ -25,13 +22,3 @@ This repository contains simple showcases of ScalaLoci using small examples.
 * [Token Ring](src/main/scala/batch/tokenring) models a token ring, where every node in the
   ring can send a token for another node. Multiple tokens can circulate in the ring
   simultaneously until they reach their destination.
-
-
-## Building the Examples
-
-The examples require the *[DSL Paradise](http://github.com/pweisenburger/dslparadise)*
-compiler plugin. Clone the *DSL Paradise* repository and publish the project locally using:
-
-```scala
-sbt publishLocal
-```
