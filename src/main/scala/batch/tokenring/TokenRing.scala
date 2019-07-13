@@ -1,39 +1,38 @@
 package batch.tokenring
 
-import rescala._
-
 import loci._
 import loci.transmitter.rescala._
 import loci.communicator.tcp._
 import loci.serializer.upickle._
 
+import rescala.default._
+
 import java.util.UUID
 
 
-@multitier
-object TokenRing {
+@multitier object TokenRing {
   type Id = UUID
   type Token = String
 
-  trait Prev extends Peer { type Tie <: Single[Prev] }
-  trait Next extends Peer { type Tie <: Single[Next] }
-  trait Node extends Prev with Next { type Tie <: Single[Prev] with Single[Next] }
+  @peer type Prev <: { type Tie <: Single[Prev] }
+  @peer type Next <: { type Tie <: Single[Next] }
+  @peer type Node <: Prev with Next { type Tie <: Single[Prev] with Single[Next] }
 
   val id: Id on Prev = UUID.randomUUID
-  val sendToken: Evt[(Id, Token)] localOn Prev = Evt[(Id, Token)]
-  val recv: Event[Token] localOn Prev = placed {
+  val sendToken: Local[Evt[(Id, Token)]] on Prev = Evt[(Id, Token)]
+  val recv: Local[Event[Token]] on Prev = placed {
     sent.asLocal collect {
       case (receiver, token) if receiver == id => token } }
   val sent: Event[(Id, Token)] on Prev = placed {
     (sent.asLocal \ recv) || sendToken }
 
-  placed[Node].main {
-    recv observe { token: Token =>
+  def main() = on[Node] {
+    recv observe { token =>
       println(s"""received:  "$token"\n      on:             $id""")
       multitier.terminate()
     }
 
-    sendToken fire ((id, s"token for $id"))
+    sendToken.fire(id -> s"token for $id")
   }
 }
 
@@ -51,10 +50,8 @@ object TokenRingMain extends App {
     (TCP("localhost", last._1) -> TCP("localhost", last._2))
 
   requestors foreach { requestor =>
-    multitier setup new TokenRing.Node {
-      def connect =
-        connect[TokenRing.Prev] { requestor._1 } and
-        connect[TokenRing.Next] { requestor._2 }
-    }
+    multitier start new Instance[TokenRing.Node](
+      connect[TokenRing.Prev] { requestor._1 } and
+      connect[TokenRing.Next] { requestor._2 })
   }
 }

@@ -1,49 +1,48 @@
 package batch.masterworker
 
-import rescala._
-
-import upickle.default._
-
 import loci._
+import loci.transmitter.IdenticallyTransmittable
 import loci.transmitter.rescala._
 import loci.communicator.tcp._
 import loci.serializer.upickle._
 
-import scala.language.higherKinds
+import rescala.default._
+
+import upickle.default._
 
 
 case class Task(v: Int) { def exec: Int = 2 * v }
 
 object Task {
+  implicit val taskTransmittable: IdenticallyTransmittable[Task] = IdenticallyTransmittable()
   implicit val taskSerializer: ReadWriter[Task] = macroRW[Task]
 }
 
-@multitier
-object MasterWorker {
-  trait Master extends Peer { type Tie <: Multiple[Worker] }
-  trait Worker extends Peer { type Tie <: Single[Master] }
+@multitier object MasterWorker {
+  @peer type Master <: { type Tie <: Multiple[Worker] }
+  @peer type Worker <: { type Tie <: Single[Master] }
 
-  val taskStream: Evt[Task] localOn Master = Evt[Task]
+  val taskStream: Local[Evt[Task]] on Master = Evt[Task]
 
-  val assocs: Signal[Map[Remote[Worker], Task]] localOn Master = placed {
+  val assocs: Local[Signal[Map[Remote[Worker], Task]]] on Master = placed {
     ((taskStream || taskResult.asLocalFromAllSeq || remote[Worker].joined)
-      .fold((Map.empty[Remote[Worker], Task], List.empty[Task]))
+      .fold(Map.empty[Remote[Worker], Task] -> List.empty[Task])
        { case ((taskAssocs, taskQueue), taskChanged) =>
          assignTasks(taskAssocs, taskQueue, taskChanged, remote[Worker].connected()) }
     map { case (taskAssocs, _) => taskAssocs }) }
 
-  val deployedTask = placed[Master].sbj { worker: Remote[Worker] =>
+  val deployedTask = on[Master] sbj { worker: Remote[Worker] =>
     Signal { assocs().get(worker) } }
-  val taskResult = placed[Worker] {
+  val taskResult = on[Worker] {
     deployedTask.asLocal.changed collect { case Some(task) => task.exec } }
-  val result = placed[Master] {
+  val result = on[Master] {
     taskResult.asLocalFromAllSeq.fold(0){ case (acc, (_, result)) => acc + result } }
 
   def assignTasks(
       taskAssocs: Map[Remote[Worker], Task],
       taskQueue: List[Task],
       taskChanged: AnyRef,
-      connected: Seq[Remote[Worker]]) = placed[Master].local {
+      connected: Seq[Remote[Worker]]) = on[Master] local {
     def assignFreeWorker(assocs: Map[Remote[Worker], Task], task: Task) =
       (connected filterNot { assocs contains _ }).headOption map { worker =>
         assocs + (worker -> task)
@@ -67,7 +66,7 @@ object MasterWorker {
     }
   }
 
-  placed[Master].main {
+  def main() = on[Master] {
     var count = 0
     result observe { result =>
       println(s"current result value: $result")
@@ -76,21 +75,19 @@ object MasterWorker {
         multitier.terminate()
     }
 
-    taskStream fire Task(5)
-    taskStream fire Task(7)
-    taskStream fire Task(9)
+    taskStream.fire(Task(5))
+    taskStream.fire(Task(7))
+    taskStream.fire(Task(9))
   }
 }
 
 
 object MasterWorkerMain extends App {
-  multitier setup new MasterWorker.Master {
-    def connect = listen[MasterWorker.Worker] { TCP(1095) }
-  }
+  multitier start new Instance[MasterWorker.Master](
+    listen[MasterWorker.Worker] { TCP(1095) })
 
   1 to 2 foreach { _ =>
-    multitier setup new MasterWorker.Worker {
-      def connect = connect[MasterWorker.Master] { TCP("localhost", 1095) }
-    }
+    multitier start new Instance[MasterWorker.Worker](
+      connect[MasterWorker.Master] { TCP("localhost", 1095) })
   }
 }
