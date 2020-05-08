@@ -37,15 +37,16 @@ object Tweet {
 
   val tweetStream: Evt[Tweet] on Input = Evt[Tweet]
 
-  val filtered: Event[Tweet] on Filter = placed {
-    tweetStream.asLocal filter { tweet => tweet.hasHashtag("multitier") } }
+  val filtered: Event[Tweet] on Filter =
+    tweetStream.asLocal filter { tweet => tweet.hasHashtag("multitier") }
 
-  val mapped: Event[Author] on Mapper = placed {
-    filtered.asLocal map { tweet => tweet.author } }
+  val mapped: Event[Author] on Mapper =
+    filtered.asLocal map { tweet => tweet.author }
 
-  val folded: Signal[Map[Author, Int]] on Folder = placed {
+  val folded: Signal[Map[Author, Int]] on Folder =
     mapped.asLocal.fold(Map.empty[Author, Int].withDefaultValue(0)) {
-      (map, author) => map + (author -> (map(author) + 1)) } }
+      (map, author) => map + (author -> (map(author) + 1))
+    }
 
   def main(): Unit on Peer =
     (on[Input] {

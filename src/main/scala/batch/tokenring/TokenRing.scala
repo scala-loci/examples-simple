@@ -19,12 +19,16 @@ import java.util.UUID
   @peer type Node <: Prev with Next { type Tie <: Single[Prev] with Single[Next] }
 
   val id: Id on Prev = UUID.randomUUID
+
   val sendToken: Local[Evt[(Id, Token)]] on Prev = Evt[(Id, Token)]
-  val recv: Local[Event[Token]] on Prev = placed {
+
+  val recv: Local[Event[Token]] on Prev =
     sent.asLocal collect {
-      case (receiver, token) if receiver == id => token } }
-  val sent: Event[(Id, Token)] on Prev = placed {
-    (sent.asLocal \ recv) || sendToken }
+      case (receiver, token) if receiver == id => token
+    }
+
+  val sent: Event[(Id, Token)] on Prev =
+    (sent.asLocal \ recv) || sendToken
 
   def main() = on[Node] {
     recv observe { token =>

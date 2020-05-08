@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat
   @peer type Server <: Peer { type Tie <: Multiple[Client] }
   @peer type Client <: Peer { type Tie <: Single[Server] }
 
-  val time = on[Server] { Var(0l) }
+  val time = on[Server] { Var(0L) }
 
   def main(): Unit on Peer =
     (on[Server] {

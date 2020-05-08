@@ -24,19 +24,24 @@ object Task {
 
   val taskStream: Local[Evt[Task]] on Master = Evt[Task]
 
-  val assocs: Local[Signal[Map[Remote[Worker], Task]]] on Master = placed {
+  val assocs: Local[Signal[Map[Remote[Worker], Task]]] on Master =
     ((taskStream || taskResult.asLocalFromAllSeq || remote[Worker].joined)
-      .fold(Map.empty[Remote[Worker], Task] -> List.empty[Task])
-       { case ((taskAssocs, taskQueue), taskChanged) =>
-         assignTasks(taskAssocs, taskQueue, taskChanged, remote[Worker].connected()) }
-    map { case (taskAssocs, _) => taskAssocs }) }
+      .fold(Map.empty[Remote[Worker], Task] -> List.empty[Task]) { case ((taskAssocs, taskQueue), taskChanged) =>
+         assignTasks(taskAssocs, taskQueue, taskChanged, remote[Worker].connected())
+      }
+      map { case (taskAssocs, _) => taskAssocs })
 
   val deployedTask = on[Master] sbj { worker: Remote[Worker] =>
-    Signal { assocs().get(worker) } }
+    Signal { assocs().get(worker) }
+  }
+
   val taskResult = on[Worker] {
-    deployedTask.asLocal.changed collect { case Some(task) => task.exec } }
+    deployedTask.asLocal.changed collect { case Some(task) => task.exec }
+  }
+
   val result = on[Master] {
-    taskResult.asLocalFromAllSeq.fold(0){ case (acc, (_, result)) => acc + result } }
+    taskResult.asLocalFromAllSeq.fold(0){ case (acc, (_, result)) => acc + result }
+  }
 
   def assignTasks(
       taskAssocs: Map[Remote[Worker], Task],
