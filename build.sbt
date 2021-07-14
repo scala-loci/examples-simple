@@ -8,7 +8,7 @@ scalaVersion := "2.13.2"
 
 scalacOptions ++= Seq("-feature", "-deprecation", "-unchecked", "-Xlint", "-Ymacro-annotations")
 
-resolvers += Resolver.bintrayRepo("stg-tud", "maven")
+resolvers += ("STG old bintray repo" at "http://www.st.informatik.tu-darmstadt.de/maven/").withAllowInsecureProtocol(true)
 
 libraryDependencies ++= Seq(
   "de.tuda.stg" %% "scala-loci-lang" % "0.4.0",
