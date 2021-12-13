@@ -1,9 +1,9 @@
 package interactive.chatsimple
 
-import loci._
-import loci.transmitter.rescala._
-import loci.serializer.upickle._
+import loci.language._
+import loci.language.transmitter.rescala._
 import loci.communicator.tcp._
+import loci.serializer.upickle._
 
 import rescala.default._
 
@@ -12,7 +12,7 @@ import rescala.default._
   @peer type Server <: { type Tie <: Multiple[Client] }
   @peer type Client <: { type Tie <: Single[Server] }
 
-  val message = on[Client] { Evt[String] }
+  val message = on[Client] { Evt[String]() }
 
   val publicMessage = on[Server] sbj { client: Remote[Client] =>
     message.asLocalFromAllSeq collect {
@@ -23,7 +23,7 @@ import rescala.default._
   def main() = on[Client] {
     publicMessage.asLocal observe println
 
-    for (line <- scala.io.Source.stdin.getLines)
+    for (line <- scala.io.Source.stdin.getLines())
       message.fire(line)
   }
 }

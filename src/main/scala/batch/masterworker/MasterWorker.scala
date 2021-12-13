@@ -1,10 +1,10 @@
 package batch.masterworker
 
-import loci._
-import loci.transmitter.IdenticallyTransmittable
-import loci.transmitter.rescala._
+import loci.language._
+import loci.language.transmitter.rescala._
 import loci.communicator.tcp._
 import loci.serializer.upickle._
+import loci.transmitter.IdenticallyTransmittable
 
 import rescala.default._
 
@@ -22,7 +22,7 @@ object Task {
   @peer type Master <: { type Tie <: Multiple[Worker] }
   @peer type Worker <: { type Tie <: Single[Master] }
 
-  val taskStream: Local[Evt[Task]] on Master = Evt[Task]
+  val taskStream: Local[Evt[Task]] on Master = Evt[Task]()
 
   val assocs: Local[Signal[Map[Remote[Worker], Task]]] on Master =
     ((taskStream || taskResult.asLocalFromAllSeq || remote[Worker].joined)
@@ -68,6 +68,9 @@ object Task {
       case task: Task =>
         assignFreeWorker(taskAssocs, task) map { _ -> taskQueue } getOrElse
           taskAssocs -> (taskQueue :+ task)
+
+      case _ =>
+        taskAssocs -> taskQueue
     }
   }
 

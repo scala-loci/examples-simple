@@ -1,17 +1,16 @@
 name := "scala-loci-examples"
 
-organization := "de.tuda.stg"
+organization := "io.github.scala-loci"
 
 version := "0.0.0"
 
-scalaVersion := "2.13.2"
+scalaVersion := "2.13.7"
 
 scalacOptions ++= Seq("-feature", "-deprecation", "-unchecked", "-Xlint", "-Ymacro-annotations")
 
-resolvers += ("STG old bintray repo" at "http://www.st.informatik.tu-darmstadt.de/maven/").withAllowInsecureProtocol(true)
-
 libraryDependencies ++= Seq(
-  "de.tuda.stg" %% "scala-loci-lang" % "0.4.0",
-  "de.tuda.stg" %% "scala-loci-serializer-upickle" % "0.4.0",
-  "de.tuda.stg" %% "scala-loci-communicator-tcp" % "0.4.0",
-  "de.tuda.stg" %% "scala-loci-lang-transmitter-rescala" % "0.4.0")
+  "io.github.scala-loci" %% "scala-loci-language" % "0.5.0" % "compile-internal",
+  "io.github.scala-loci" %% "scala-loci-language-runtime" % "0.5.0",
+  "io.github.scala-loci" %% "scala-loci-language-transmitter-rescala" % "0.5.0",
+  "io.github.scala-loci" %% "scala-loci-serializer-upickle" % "0.5.0",
+  "io.github.scala-loci" %% "scala-loci-communicator-tcp" % "0.5.0")

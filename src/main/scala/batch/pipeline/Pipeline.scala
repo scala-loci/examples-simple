@@ -1,10 +1,10 @@
 package batch.pipeline
 
-import loci._
-import loci.transmitter.IdenticallyTransmittable
-import loci.transmitter.rescala._
+import loci.language._
+import loci.language.transmitter.rescala._
 import loci.communicator.tcp._
 import loci.serializer.upickle._
+import loci.transmitter.IdenticallyTransmittable
 
 import rescala.default._
 
@@ -35,7 +35,7 @@ object Tweet {
   @peer type Mapper <: Peer { type Tie <: Single[Folder] with Single[Filter] } 
   @peer type Folder <: Peer { type Tie <: Single[Mapper] }
 
-  val tweetStream: Evt[Tweet] on Input = Evt[Tweet]
+  val tweetStream: Evt[Tweet] on Input = Evt[Tweet]()
 
   val filtered: Event[Tweet] on Filter =
     tweetStream.asLocal filter { tweet => tweet.hasHashtag("multitier") }

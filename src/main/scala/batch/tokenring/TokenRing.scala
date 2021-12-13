@@ -1,7 +1,7 @@
 package batch.tokenring
 
-import loci._
-import loci.transmitter.rescala._
+import loci.language._
+import loci.language.transmitter.rescala._
 import loci.communicator.tcp._
 import loci.serializer.upickle._
 
@@ -20,7 +20,7 @@ import java.util.UUID
 
   val id: Id on Prev = UUID.randomUUID
 
-  val sendToken: Local[Evt[(Id, Token)]] on Prev = Evt[(Id, Token)]
+  val sendToken: Local[Evt[(Id, Token)]] on Prev = Evt[(Id, Token)]()
 
   val recv: Local[Event[Token]] on Prev =
     sent.asLocal collect {
@@ -44,7 +44,7 @@ import java.util.UUID
 object TokenRingMain extends App {
   val ports = 1095 to 1099
 
-  val Seq(first, middle @ _*) = ports zip ports.tail
+  val Seq(first, middle @ _*) = ports zip ports.tail: @unchecked
   val last = (ports.last, ports.head)
 
   val requestors =

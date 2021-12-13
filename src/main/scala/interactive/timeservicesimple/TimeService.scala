@@ -1,9 +1,9 @@
 package interactive.timeservicesimple
 
-import loci._
-import loci.transmitter.rescala._
-import loci.serializer.upickle._
+import loci.language._
+import loci.language.transmitter.rescala._
 import loci.communicator.tcp._
+import loci.serializer.upickle._
 
 import rescala.default._
 
@@ -22,14 +22,14 @@ import java.text.SimpleDateFormat
   def main(): Unit on Peer =
     (on[Server] {
       while (true) {
-        time set Calendar.getInstance.getTimeInMillis
-        Thread sleep 1000
+        time.set(Calendar.getInstance.getTimeInMillis)
+        Thread.sleep(1000)
       }
     }) and
     (on[Client] {
       val format = new SimpleDateFormat("h:m:s")
 
-      val display = Signal { format format new Date(time.asLocal()) }
+      val display = Signal { format.format(new Date(time.asLocal())) }
 
       display.changed observe println
     })
